@@ -1,25 +1,44 @@
+import heapq
 import sys
-from collections import defaultdict
 
-N, M, X = map(int, input().split())
+input = sys.stdin.readline
+INF = int(1e9)
 
-# graph = defaultdict(list)
-# for _ in range(M):
-#     s, d, w = map(int, sys.stdin.readline().split())
-#     graph[s].append((w, d))
-MAX = 0xffffffff
-graph = [[MAX]*N for _ in range(N)]
-for _ in range(M):
-    s, d, w = map(int, sys.stdin.readline().split())
-    graph[s-1][d-1] = w
+v, e, x = map(int, input().split())
+graph = [[] for _ in range(v + 1)]
 
-for c in range(N):
-    for a in range(N):
-        for b in range(N):
-            if graph[a][b] > graph[a][c] + graph[c][b]:
-                graph[a][b] = graph[a][c] + graph[c][b]
+for _ in range(e):
+    a, b, cost = map(int, input().split())
+    graph[a].append((b, cost))
 
-m = -1
-for i in range(N):
-    m = max(m, graph[i][X-1] + graph[X-1][i])
-print(m)
+
+def dijkstra(start):
+    q = []
+    distance = [INF] * (v + 1)
+
+    heapq.heappush(q, (0, start))
+    distance[start] = 0
+
+    while q:
+        dist, now = heapq.heappop(q)
+
+        if distance[now] < dist:
+            continue
+
+        for node_index, node_cost in graph[now]:
+            cost = dist + node_cost
+
+            if distance[node_index] > cost:
+                distance[node_index] = cost
+                heapq.heappush(q, (cost, node_index))
+
+    return distance
+
+
+result = 0
+for i in range(1, v + 1):
+    go = dijkstra(i)
+    back = dijkstra(x)
+    result = max(result, go[x] + back[i])
+
+print(result)
